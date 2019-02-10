@@ -14,9 +14,7 @@
       log('Got a token.');
 
       // Setup Twilio.Device
-      device = new Twilio.Device(data.token, {
-        debug: true
-      });
+      device = new Twilio.Device(data.token);
 
       device.on('ready', function (device) {
         log('Twilio.Device Ready!');
