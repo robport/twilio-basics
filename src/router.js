@@ -1,13 +1,7 @@
 const Router = require('express').Router;
-
-const {tokenGenerator, voiceResponse} = require('./handler');
-
 const router = new Router();
+const {tokenGenerator, voiceResponse, makeACall} = require('./handler');
 
-/**
- * Generate a Capability Token for a Twilio Client user - it generates a random
- * username for the client requesting a token.
- */
 router.get('/token', (req, res) => {
   res.send(tokenGenerator());
 });
@@ -15,6 +9,12 @@ router.get('/token', (req, res) => {
 router.post('/voice', (req, res) => {
   res.set('Content-Type', 'text/xml');
   res.send(voiceResponse(req.body));
+});
+
+router.get('/makeCall', (req, res) => {
+  makeACall();
+  res.set('Content-Type', 'text/text');
+  res.send('sent');
 });
 
 module.exports = router;

@@ -81,6 +81,19 @@
     }
   };
 
+  // Bind button to make call
+  document.getElementById('button-get-call-from-queue').onclick = function () {
+    // get the phone number to connect the call to
+    var params = {
+      To: 'queue'
+    };
+
+    if (device) {
+      log('Get call from queue ' + params.To + '...');
+      device.connect(params);
+    }
+  };
+
   document.getElementById('button-hangup').onclick = function () {
     log('Hanging up...');
     if (device) {

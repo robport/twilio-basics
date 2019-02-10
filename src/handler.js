@@ -1,12 +1,11 @@
+const config = require('../config');
 const ClientCapability = require('twilio').jwt.ClientCapability;
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
+const client = require('twilio')(config.accountSid, config.authToken);
 
-const config = require('../config');
-let identity;
+const identity = "RobPorter";
 
 exports.tokenGenerator = function tokenGenerator() {
-  identity = "RobPorter";
-  console.log('identity:' + identity);
   const capability = new ClientCapability({
     accountSid: config.accountSid,
     authToken: config.authToken,
@@ -25,54 +24,46 @@ exports.tokenGenerator = function tokenGenerator() {
   };
 };
 
-exports.recordedResponse = function() {
-  const twiml = new VoiceResponse();
-  twiml.say({ voice: 'alice' }, 'Switchraft helpdesk will be with you shortly');
-  twiml.play({}, 'https://demo.twilio.com/docs/classic.mp3');
-  // twiml.enqueue();
-  return twiml.toString();
-};
-
-exports.putInQueue = function() {
-  const twiml = new VoiceResponse();
-  twiml.enqueue('my_queue');
+exports.makeACall = () => {
+  client.calls
+    .create({
+      url: 'http://demo.twilio.com/docs/voice.xml',
+      to: '+441483765972',
+      from: config.callerId
+    })
+    .then(call => console.log(JSON.stringify(call, null, 2)))
+    .catch(e => console.error(e))
+    .done();
 };
 
 exports.voiceResponse = function voiceResponse(body) {
-
+  const response = new VoiceResponse();
   const toNumber = body.To;
-  console.log('/voice to:' + JSON.stringify(body, null, 2));
 
-  // Create a TwiML voice response
-  const twiml = new VoiceResponse();
+  console.log(JSON.stringify(body, null, 2));
 
-  // if(toNumber) {
-    // Wrap the phone number or client name in the appropriate TwiML verb
-    // if is a valid phone number
-    // const attr = isAValidPhoneNumber(toNumber) ? 'number' : 'client';
-    // console.log('attr:' + attr);
+  if (toNumber === 'queue') {
+    // Get next call from the queue
+    const dial = response.dial({callerId: config.callerId});
+    dial.queue({}, 'support');
+  } else if (body.From.startsWith('client')) {
+    // Outbound Call
+    const dial = response.dial({callerId: config.callerId});
+    dial.number({}, toNumber);
+  } else {
+    // Inbound Call
+    response.say('Hi, this is Switchcraft, we will be with you in a moment...');
+    response.enqueue({}, 'support');
+    // const dial = response.dial({callerId: config.callerId});
+    // dial.client({}, identity);
+  }
 
-    const dial = twiml.dial({
-      callerId: config.callerId,
-    });
 
-    dial['client']({
-      someparam: 'dvdvfb'
-    }, identity);
-  // } else {
-  //   twiml.say('No to number supplied')
-  // }
+  console.log(response.toString());
 
-  // console.log(twiml.toString());
-
-  return twiml.toString();
+  return response.toString();
 };
 
-/**
-* Checks if the given value is valid as phone number
-* @param {Number|String} number
-* @return {Boolean}
-*/
 function isAValidPhoneNumber(number) {
   return /^[\d\+\-\(\) ]+$/.test(number);
 }
