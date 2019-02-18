@@ -1,4 +1,5 @@
-﻿$(function () {
+﻿
+(async function () {
   var speakerDevices = document.getElementById('speaker-devices');
   var ringtoneDevices = document.getElementById('ringtone-devices');
   var outputVolumeBar = document.getElementById('output-volume');
@@ -9,9 +10,10 @@
   var connection;
 
   log('Requesting Capability Token...');
-  $.getJSON('/token')
-    .then(function (data) {
-      log('Got a token.');
+  try{
+  const res = await fetch('/token');
+  const data = await res.json();
+  log('Got a token.');
 
       // Setup Twilio.Device
       device = new Twilio.Device(data.token);
@@ -62,11 +64,11 @@
       if (device.audio.isOutputSelectionSupported) {
         document.getElementById('output-selection').style.display = 'block';
       }
-    })
-    .catch(function (err) {
+    }
+    catch(err) {
       console.log(err);
       log('Could not get a token from server!');
-    });
+    }
 
   // Bind button to make call
   document.getElementById('button-call').onclick = function () {
@@ -216,4 +218,4 @@
     div.innerHTML = 'Your client name: <strong>' + clientName +
       '</strong>';
   }
-});
+})();
